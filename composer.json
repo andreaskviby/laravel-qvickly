@@ -1,0 +1,53 @@
+{
+    "name": "andreaskviby/laravel-qvickly",
+    "description": "Laravel-paket för Qvickly (tidigare Billmate) – hela betal-API:t, hosted checkout, betallänkar och verifierade callbacks.",
+    "keywords": ["laravel", "qvickly", "billmate", "payments", "checkout", "swish", "sweden"],
+    "homepage": "https://github.com/andreaskviby/laravel-qvickly",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andreas Kviby",
+            "homepage": "https://github.com/andreaskviby"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "illuminate/http": "^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^11.0|^12.0",
+        "laravel/pint": "^1.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "Andreaskviby\\Qvickly\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Andreaskviby\\Qvickly\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "format": "vendor/bin/pint"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Andreaskviby\\Qvickly\\QvicklyServiceProvider"
+            ],
+            "aliases": {
+                "Qvickly": "Andreaskviby\\Qvickly\\Facades\\Qvickly"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
