@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static QvicklyResponse getTerms(array $data = [])
  * @method static QvicklyResponse getAccountinfo(array $data = [])
  * @method static QvicklyResponse getDuePayments(array $data = [])
- * @method static QvicklyResponse call(string $function, array|\Illuminate\Contracts\Support\Arrayable $data = [])
+ * @method static QvicklyResponse call(string $function, array|\Illuminate\Contracts\Support\Arrayable $data = [], array $extraPayload = [])
  * @method static bool verifyCallback(\Illuminate\Http\Request|array $payload, ?string $rawData = null)
  * @method static array callbackPayload(\Illuminate\Http\Request $request)
  * @method static QvicklyResponse confirmCallback(\Illuminate\Http\Request|array $payload)

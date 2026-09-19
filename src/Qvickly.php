@@ -55,7 +55,11 @@ class Qvickly
         return Payment::make()
             ->currency((string) ($this->config['currency'] ?? 'SEK'))
             ->language((string) ($this->config['language'] ?? 'sv'))
-            ->country((string) ($this->config['country'] ?? 'SE'));
+            ->country((string) ($this->config['country'] ?? 'SE'))
+            // Kunden ska tillbaka till butiken när betalningen är klar. Utan
+            // den här blir hen kvar i Qvicklys kassa – stäng av med
+            // ->redirectOnSuccess(false) om du har en egen tacksida där.
+            ->redirectOnSuccess();
     }
 
     // ────────────────────────────── Betalningar ──────────────────────────────
@@ -97,7 +101,16 @@ class Qvickly
     /** Startar den hostade kassan och ger tillbaka en url att visa kunden. */
     public function initCheckout(array|Arrayable $data): QvicklyResponse
     {
-        return $this->call('initCheckout', $data);
+        $data = $data instanceof Arrayable ? $data->toArray() : $data;
+
+        // Qvickly visar checkoutdata på toppnivå i sina JSON-exempel men inuti
+        // data i sina kodexempel. Vi skickar det på båda ställena: toppnivån
+        // ligger utanför signaturen, så det kostar ingenting att vara säker.
+        $extra = isset($data['CheckoutData'])
+            ? ['checkoutdata' => $data['CheckoutData']]
+            : [];
+
+        return $this->call('initCheckout', $data, $extra);
     }
 
     // ────────────────────────────── Uppslag ──────────────────────────────
@@ -199,12 +212,13 @@ class Qvickly
      * Ett anrop mot API:t. Alla metoder ovan går genom den här.
      *
      * @param  array<string, mixed>|Arrayable<string, mixed>  $data
+     * @param  array<string, mixed>  $extraPayload  Fält utanför data, och därmed utanför signaturen
      */
-    public function call(string $function, array|Arrayable $data = []): QvicklyResponse
+    public function call(string $function, array|Arrayable $data = [], array $extraPayload = []): QvicklyResponse
     {
         $data = $data instanceof Arrayable ? $data->toArray() : $data;
 
-        $payload = [
+        $payload = $extraPayload + [
             'credentials' => $this->credentials($data),
             // Hashen räknas över exakt den här arrayen – den får inte kodas om
             // på vägen, då stämmer inte signaturen.

@@ -239,7 +239,35 @@ class QvicklyTest extends TestCase
         $this->assertSame('kund@example.com', $data['Customer']['Billing']['email']);
         $this->assertSame('Test', $data['Customer']['Billing']['firstname']);
         $this->assertSame('https://shop.test/villkor', $data['CheckoutData']['terms']);
+        $this->assertSame('https://shop.test/integritet', $data['CheckoutData']['privacyPolicy']);
+        $this->assertSame('true', $data['CheckoutData']['companyView']);
+        // Utan den här stannar kunden kvar hos Qvickly efter betalningen.
+        $this->assertSame('true', $data['CheckoutData']['redirectOnSuccess']);
         $this->assertCount(1, $data['Articles']);
+    }
+
+    public function test_checkout_data_is_sent_where_qvickly_reads_it(): void
+    {
+        Http::fake(['api.qvickly.io/*' => Http::response(QvicklyFake::checkout())]);
+
+        Qvickly::initCheckout(Qvickly::payment()->orderId('EK-1')->terms('https://shop.test/villkor'));
+
+        Http::assertSent(function ($request) {
+            $body = json_decode($request->body(), true);
+
+            // Både på toppnivå och i data: deras dokumentation visar båda, och
+            // toppnivån ligger utanför signaturen.
+            $this->assertSame('true', $body['checkoutdata']['redirectOnSuccess']);
+            $this->assertSame('true', $body['data']['CheckoutData']['redirectOnSuccess']);
+
+            // Signaturen räknas fortfarande bara över data.
+            $this->assertSame(
+                hash_hmac('sha512', json_encode($body['data']), self::SECRET),
+                $body['credentials']['hash'],
+            );
+
+            return true;
+        });
     }
 
     public function test_every_documented_function_is_reachable(): void

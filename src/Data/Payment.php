@@ -254,7 +254,7 @@ class Payment implements Arrayable
         $this->checkoutData['terms'] = $termsUrl;
 
         if ($privacyPolicyUrl !== null) {
-            $this->checkoutData['privacypolicy'] = $privacyPolicyUrl;
+            $this->checkoutData['privacyPolicy'] = $privacyPolicyUrl;
         }
 
         return $this;
@@ -263,14 +263,28 @@ class Payment implements Arrayable
     /** Låter kunden handla som företag i den hostade kassan. */
     public function allowCompany(bool $allow = true): self
     {
-        $this->checkoutData['showcompany'] = $allow ? '1' : '0';
+        $this->checkoutData['companyView'] = $allow ? 'true' : 'false';
 
         return $this;
     }
 
     public function requirePhone(bool $required = true): self
     {
-        $this->checkoutData['phonemandatory'] = $required ? '1' : '0';
+        $this->checkoutData['showPhoneOnDelivery'] = $required ? 'true' : 'false';
+
+        return $this;
+    }
+
+    /**
+     * Skickar tillbaka kunden till accepturl när betalningen är klar.
+     *
+     * Utan den här stannar kunden kvar i Qvicklys kassa efter att ha betalat –
+     * deras dokumentation säger "needs to be set if you have no custom Thank
+     * you page", och standardvärdet är false.
+     */
+    public function redirectOnSuccess(bool $redirect = true): self
+    {
+        $this->checkoutData['redirectOnSuccess'] = $redirect ? 'true' : 'false';
 
         return $this;
     }

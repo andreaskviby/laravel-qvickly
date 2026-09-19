@@ -91,6 +91,19 @@ $checkout->url();      // https://checkout.qvickly.io/…
 $checkout->number();   // betalningsnumret, spara det på ordern
 ```
 
+## Kunden ska tillbaka till butiken
+
+`redirectOnSuccess` är påslaget som standard i `Qvickly::payment()`. Utan den
+stannar kunden kvar i Qvicklys kassa efter att ha betalat – deras kassa
+redirectar inte av sig själv, och det syns inte förrän någon betalat på riktigt.
+
+```php
+Qvickly::payment()->redirectOnSuccess(false);   // du har en egen tacksida hos dem
+```
+
+Lita ändå aldrig på returen ensam: callbacken kan utebli helt, och kunden kan
+stänga fönstret. Stäm av mot `getPaymentinfo()` – se nästa avsnitt.
+
 ## Callbacks
 
 Qvickly postar tillbaka när betalningen ändrar status, och försöker om i tre månader tills du svarar 200. Verifiera signaturen – och lita sedan på API:t framför callbacken.
