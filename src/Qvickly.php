@@ -87,10 +87,42 @@ class Qvickly
         return $this->call('cancelPayment', ['number' => (string) $number]);
     }
 
-    /** Krediterar hela eller delar av en betalning. */
-    public function creditPayment(int|string $number, array $extra = []): QvicklyResponse
+    /**
+     * Krediterar en betalning – pengarna går tillbaka samma väg som de kom,
+     * och kreditfakturor aktiveras alltid automatiskt hos Qvickly.
+     *
+     * Till skillnad från de andra anropen vill creditPayment ha numret inuti
+     * PaymentData, inte löst i data.
+     *
+     * @param  array<string, mixed>|Arrayable<string, mixed>  $lines  Rader och summor, bara vid delkreditering
+     */
+    public function creditPayment(int|string $number, array|Arrayable $lines = [], bool $partial = false): QvicklyResponse
     {
-        return $this->call('creditPayment', ['number' => (string) $number] + $extra);
+        $lines = $lines instanceof Arrayable ? $lines->toArray() : $lines;
+
+        $lines['PaymentData'] = array_merge($lines['PaymentData'] ?? [], [
+            'number' => (string) $number,
+            'partcredit' => $partial ? 'true' : 'false',
+        ]);
+
+        return $this->call('creditPayment', $lines);
+    }
+
+    /** Hela betalningen tillbaka till kunden. */
+    public function creditFull(int|string $number): QvicklyResponse
+    {
+        return $this->creditPayment($number);
+    }
+
+    /**
+     * Delkreditering: skicka raderna som ska betalas tillbaka, enklast byggda
+     * med payment() – summorna måste gå ihop precis som vid ett köp.
+     *
+     * @param  array<string, mixed>|Arrayable<string, mixed>  $lines
+     */
+    public function creditPartial(int|string $number, array|Arrayable $lines): QvicklyResponse
+    {
+        return $this->creditPayment($number, $lines, true);
     }
 
     public function getPaymentinfo(int|string $number): QvicklyResponse

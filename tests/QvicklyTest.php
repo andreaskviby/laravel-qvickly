@@ -270,6 +270,42 @@ class QvicklyTest extends TestCase
         });
     }
 
+    public function test_a_credit_is_sent_the_way_qvickly_wants_it(): void
+    {
+        Http::fake(['api.qvickly.io/*' => Http::response(QvicklyFake::paymentInfo('1071', 'Credited'))]);
+
+        Qvickly::creditFull('1071');
+
+        Http::assertSent(function ($request) {
+            $data = json_decode($request->body(), true)['data'];
+
+            // Numret ligger i PaymentData här, till skillnad från övriga anrop.
+            $this->assertSame('1071', $data['PaymentData']['number']);
+            $this->assertSame('false', $data['PaymentData']['partcredit']);
+
+            return true;
+        });
+    }
+
+    public function test_a_partial_credit_carries_the_lines_back(): void
+    {
+        Http::fake(['api.qvickly.io/*' => Http::response(QvicklyFake::paymentInfo('1071', 'Credited'))]);
+
+        Qvickly::creditPartial('1071', Qvickly::payment()->article(
+            Article::fromGross('Olivolja 1 L', 29900)
+        ));
+
+        Http::assertSent(function ($request) {
+            $data = json_decode($request->body(), true)['data'];
+
+            $this->assertSame('true', $data['PaymentData']['partcredit']);
+            $this->assertSame('29900', $data['Cart']['Total']['withtax']);
+            $this->assertCount(1, $data['Articles']);
+
+            return true;
+        });
+    }
+
     public function test_every_documented_function_is_reachable(): void
     {
         Http::fake(['api.qvickly.io/*' => Http::response(QvicklyFake::paymentInfo())]);

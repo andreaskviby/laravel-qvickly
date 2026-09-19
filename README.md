@@ -124,6 +124,23 @@ Route::post('/webhooks/qvickly', function (Request $request) {
 
 `verifyCallback()` klarar både JSON och formulärdata, och jämför tidskonstant.
 
+## Återbetalning
+
+Pengarna går tillbaka samma väg som de kom – kort till kortet, Swish till
+telefonnumret – och kreditfakturor aktiveras alltid automatiskt hos Qvickly.
+
+```php
+Qvickly::creditFull($order->invoiceNumber);          // hela beloppet
+
+Qvickly::creditPartial($order->invoiceNumber,        // en del av det
+    Qvickly::payment()->article(Article::fromGross('Olivolja 1 L', 29900, taxRate: 6))
+);
+```
+
+Svaret innehåller kreditfakturans nummer, status `Credited` och en pdf-länk.
+Vid delkreditering måste raderna gå ihop precis som vid ett köp – `payment()`
+räknar ut summorna åt dig.
+
 ## Alla funktioner
 
 | Metod | Vad den gör |
@@ -133,7 +150,8 @@ Route::post('/webhooks/qvickly', function (Request $request) {
 | `updatePayment($data)` | Ändrar en betalning med status `Created` |
 | `activatePayment($number)` | Aktiverar för utbetalning, normalt vid leverans |
 | `cancelPayment($number)` | Avbryter en skapad betalning |
-| `creditPayment($number, $extra)` | Krediterar helt eller delvis |
+| `creditFull($number)` | Betalar tillbaka hela beloppet |
+| `creditPartial($number, $lines)` | Betalar tillbaka en del av beloppet |
 | `getPaymentinfo($number)` | Hämtar status, kund, rader och summor |
 | `getAddress($pno)` | Namn och adress ur person-/organisationsnummer |
 | `getPaymentplans($data)` | Delbetalningsplaner och månadskostnader |
